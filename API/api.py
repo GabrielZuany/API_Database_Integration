@@ -3,11 +3,14 @@ from sqlalchemy import create_engine, text
 import MySQLdb
 import pandas as pd
 import pymysql
+from os import environ
+from dotenv import load_dotenv
 
-host = "localhost"
-dbname = "banco"
-user = "root"
-password = "#include<Gzdv_24052002>"
+load_dotenv()
+host = environ.get("MYSQL_HOST")
+dbname = environ.get("MYSQL_DATABASE")
+user = environ.get("MYSQL_USER")
+password = environ.get("MYSQL_ROOT_PASSWORD")
 
 api = FastAPI()
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}/{dbname}")
@@ -26,7 +29,6 @@ def get_pedidos():
         LEFT JOIN lojas
 	        ON pedidos.ID_Loja = lojas.ID_Loja;
     '''
-    
     df =  pd.DataFrame(engine.connect().execute(text(query)))
     return df.to_json() 
 
@@ -98,19 +100,50 @@ def get_categorias_por_id(id:int):
 
 @api.get("/relatorio_vendas/produtos")
 def get_df_relatorio_vendas_produto():
-    query = "SELECT pedidos.ID_Produto, pedidos.Qtd_Vendida, pedidos.Preco_Unit, pedidos.Custo_Unit, produtos.Nome_Produto, produtos.Marca_Produto FROM pedidos INNER JOIN  produtos ON pedidos.ID_Produto = produtos.ID_Produto;"
+    query = '''
+    SELECT
+        pedidos.ID_Produto, 
+        pedidos.Qtd_Vendida, 
+        pedidos.Preco_Unit, 
+        pedidos.Custo_Unit, 
+        produtos.Nome_Produto, 
+        produtos.Marca_Produto 
+    FROM pedidos 
+    INNER JOIN produtos 
+        ON pedidos.ID_Produto = produtos.ID_Produto;
+        '''
     df =  pd.DataFrame(engine.connect().execute(text(query)))
     return df.to_json()
 
 @api.get("/relatorio_vendas/lojas")
 def get_df_relatorio_vendas_loja():
-    query = "SELECT pedidos.ID_Loja, pedidos.Qtd_Vendida, pedidos.Preco_Unit, pedidos.Custo_Unit, lojas.Loja FROM pedidos INNER JOIN  lojas ON pedidos.ID_Loja = lojas.ID_Loja;"
+    query = '''
+    SELECT 
+        pedidos.ID_Loja, 
+        pedidos.Qtd_Vendida, 
+        pedidos.Preco_Unit, 
+        pedidos.Custo_Unit, 
+        lojas.Loja 
+    FROM pedidos 
+    INNER JOIN lojas 
+        ON pedidos.ID_Loja = lojas.ID_Loja;
+        '''
     df =  pd.DataFrame(engine.connect().execute(text(query)))
     return df.to_json()
  
 @api.get("/relatorio_vendas/clientes")
 def get_df_relatorio_vendas_clientes():
-    query = "SELECT pedidos.ID_Cliente, pedidos.Qtd_Vendida, pedidos.Receita_Venda, clientes.Nome, clientes.Sobrenome FROM pedidos INNER JOIN  clientes ON pedidos.ID_Cliente = clientes.ID_Cliente;"
+    query = '''
+    SELECT 
+        pedidos.ID_Cliente, 
+        pedidos.Qtd_Vendida, 
+        pedidos.Receita_Venda, 
+        clientes.Nome, 
+        clientes.Sobrenome 
+    FROM pedidos 
+    INNER JOIN clientes 
+        ON pedidos.ID_Cliente = clientes.ID_Cliente;
+    '''
     df =  pd.DataFrame(engine.connect().execute(text(query)))
     return df.to_json()
 
